@@ -1,59 +1,168 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Debt Service Calculator</title>
-<style>
-body { font-family: Arial, sans-serif; padding: 2em; background: #f9f9f9; }
-.calculator { background: white; padding: 2em; border-radius: 10px; max-width: 800px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-label { display: block; margin-top: 1em; font-weight: bold; }
-input { width: 100%; padding: 0.5em; margin-top: 0.5em; }
-.results { margin-top: 2em; padding: 1em; background: #eef; border-radius: 5px; }
-table { width: 100%; border-collapse: collapse; margin-top: 1em; }
-th, td { border: 1px solid #ccc; padding: 0.5em; text-align: center; }
-th { background-color: #ddd; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Debt Service Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      display: flex;
+    }
+
+    .sidebar {
+      width: 250px;
+      background-color: #2c3e50;
+      color: white;
+      padding: 1em;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+    }
+
+    .logo {
+  width: 120px;
+  height: 120px;
+  background-color: #ecf0f1;
+  border-radius: 10px;
+  margin-bottom: 2em;
+  overflow: hidden; /* Add this to ensure image stays inside the div */
+  display: flex; /* centers the image nicely */
+  align-items: center;
+  justify-content: center;
+}
+
+.logo img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+    .sidebar a {
+      color: white;
+      text-decoration: none;
+      margin: 1em 0;
+      width: 100%;
+      text-align: center;
+      padding: 0.5em;
+      background: #34495e;
+      border-radius: 5px;
+    }
+
+    .sidebar a:hover {
+      background: #3d566e;
+    }
+
+    .content {
+      flex-grow: 1;
+      padding: 2em;
+    }
+
+    .calculator {
+      background: white;
+      padding: 2em;
+      border-radius: 10px;
+      max-width: 800px;
+      margin: auto;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    label {
+      display: block;
+      margin-top: 1em;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.5em;
+      margin-top: 0.5em;
+    }
+
+    .results {
+      margin-top: 2em;
+      padding: 1em;
+      background: #eef;
+      border-radius: 5px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1em;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5em;
+      text-align: center;
+    }
+
+    th {
+      background-color: #ddd;
+    }
+
+    h1, h3 {
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
-<div class="calculator">
-<h2>Debt Service Calculator</h2>
-<label>Project Cost ($):
-<input type="number" id="projectCost" value="1000000" />
-</label>
-<label>Loan Percentage (% of Project Cost):
-<input type="number" id="loanPercentage" value="70" />
-</label>
-<label>Interest Rate (% annual):
-<input type="number" step="0.01" id="interestRate" value="5" />
-</label>
-<label>Term of Loan (years):
-<input type="number" id="loanTerm" value="20" />
-</label>
-<label>Interest-Only Period (years):
-<input type="number" id="interestOnlyPeriod" value="0" />
-</label>
-<label>Required DSCR:
-<input type="number" step="0.01" id="dscr" value="1.25" />
-</label>
-<div class="results">
-<p><strong>Loan Amount:</strong> <span id="loanAmount"></span></p>
-<p><strong>Annual Debt Service:</strong> <span id="annualDebtService"></span></p>
-<h3>5-Year NOI Comparison</h3>
-<table>
-<thead>
-<tr>
-<th>Year</th>
-<th>Projected NOI</th>
-<th>Required NOI</th>
-<th>Coverage Status</th>
-<th>Shortfall</th>
-</tr>
-</thead>
-<tbody id="noiTableBody"></tbody>
-</table>
-</div>
-</div>
+  <div class="sidebar">
+    <div class="logo"><img src="Q-hotels.png"></div>
+    <a href="ARL Starnan Hotel - April 2025.pdf">Project Overview</a>
+    <a href="10 Year Pro Forma.pdf">10 Year Pro Forma</a>
+    <a href="Cash Flow Analysis.pdf">Cash Flow Analysis</a>
+    <a href="Q Hotels - DRAFT Report SpringHill-TownePlace - Grand Prairie Arlington - July 2024.pdf">Feasability Study (DRAFT)</a>
+  </div>
+  <div class="content">
+    <h1>South Arlington<br>Springhill Suites & TownePlace Suites</h1>
+    <h3>Dual Branded Select Service Property in Arlington, Texas</h3>
+
+    <div class="calculator">
+      <h2>Debt Service Calculator</h2>
+      <label>Project Cost ($):
+        <input type="number" id="projectCost" value="55000000" />
+      </label>
+      <label>Loan Percentage (% of Project Cost):
+        <input type="number" id="loanPercentage" value="70" />
+      </label>
+      <label>Interest Rate (% annual):
+        <input type="number" step="0.01" id="interestRate" value="5" />
+      </label>
+      <label>Term of Loan (years):
+        <input type="number" id="loanTerm" value="20" />
+      </label>
+      <label>Interest-Only Period (years):
+        <input type="number" id="interestOnlyPeriod" value="1" />
+      </label>
+      <label>Required DSCR:
+        <input type="number" step="0.01" id="dscr" value="1.25" />
+      </label>
+
+      <div class="results">
+        <p><strong>Loan Amount:</strong> <span id="loanAmount"></span></p>
+        <p><strong>Annual Debt Service:</strong> <span id="annualDebtService"></span></p>
+        <h3>5-Year NOI Comparison</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Year</th>
+              <th>Projected NOI</th>
+              <th>Required NOI</th>
+              <th>Coverage Status</th>
+              <th>Shortfall</th>
+            </tr>
+          </thead>
+          <tbody id="noiTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 <script>
 const proformaData = [
 { year: 2026, noi: 3623189.716 },
