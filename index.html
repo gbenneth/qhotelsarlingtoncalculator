@@ -161,55 +161,99 @@
           <tbody id="noiTableBody"></tbody>
         </table>
       </div>
+      <div class="calculator">
+    <h2>Amortization Schedule</h2>
+    <div id="amortizationSchedule"></div>
+  </div>
     </div>
   </div>
-<script>
-const proformaData = [
-{ year: 2026, noi: 3623189.716 },
-{ year: 2027, noi: 4358083.146 },
-{ year: 2028, noi: 4906634.42 },
-{ year: 2029, noi: 5127161.47 },
-{ year: 2030, noi: 5349748.627 }
-];
-const inputs = document.querySelectorAll('input');
-inputs.forEach(input => input.addEventListener('input', calculate));
-function formatCurrency(value) {
-return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-}
-function calculate() {
-const projectCost = parseFloat(document.getElementById('projectCost').value);
-const loanPercentage = parseFloat(document.getElementById('loanPercentage').value);
-const interestRate = parseFloat(document.getElementById('interestRate').value) / 100;
-const loanTerm = parseInt(document.getElementById('loanTerm').value);
-const interestOnlyPeriod = parseInt(document.getElementById('interestOnlyPeriod').value);
-const dscr = parseFloat(document.getElementById('dscr').value);
-const loanAmount = projectCost * (loanPercentage / 100);
-const annualInterestOnlyPayment = loanAmount * interestRate;
-const amortizingTerm = loanTerm - interestOnlyPeriod;
-const amortizingDebtService = loanAmount * (interestRate / (1 - Math.pow(1 + interestRate, -amortizingTerm)));
-document.getElementById('loanAmount').textContent = formatCurrency(loanAmount);
-document.getElementById('annualDebtService').textContent = `${formatCurrency(annualInterestOnlyPayment)} (IO), then ${formatCurrency(amortizingDebtService)} (Amortized)`;
-const tableBody = document.getElementById('noiTableBody');
-tableBody.innerHTML = '';
-proformaData.forEach((entry, index) => {
-const yearIndex = index;
-const isInterestOnly = yearIndex < interestOnlyPeriod;
-const annualDebtService = isInterestOnly ? annualInterestOnlyPayment : amortizingDebtService;
-const requiredNOI = annualDebtService * dscr;
-const meetsDSCR = entry.noi >= requiredNOI;
-const status = meetsDSCR ? '✅ Meets DSCR' : '⚠️ Does NOT meet DSCR';
-const shortfall = meetsDSCR ? '' : formatCurrency(requiredNOI - entry.noi);
-const row = `<tr>
-<td>${entry.year}</td>
-<td>${formatCurrency(entry.noi)}</td>
-<td>${formatCurrency(requiredNOI)}</td>
-<td>${status}</td>
-<td>${shortfall}</td>
-</tr>`;
-tableBody.insertAdjacentHTML('beforeend', row);
-});
-}
-calculate();
+  <script>
+  const proformaData = [
+    { year: 2026, noi: 3623189.716 },
+    { year: 2027, noi: 4358083.146 },
+    { year: 2028, noi: 4906634.42 },
+    { year: 2029, noi: 5127161.47 },
+    { year: 2030, noi: 5349748.627 }
+  ];
+
+  const inputs = document.querySelectorAll('input');
+  inputs.forEach(input => input.addEventListener('input', calculate));
+
+  function formatCurrency(value) {
+    return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  }
+
+  function generateAmortizationSchedule(loanAmount, annualInterestRate, loanTermYears, interestOnlyPeriodYears) {
+    const monthlyInterestRate = annualInterestRate / 12;
+    const amortizingTermMonths = (loanTermYears - interestOnlyPeriodYears) * 12;
+    const monthlyPayment = loanAmount * monthlyInterestRate / (1 - Math.pow(1 + monthlyInterestRate, -amortizingTermMonths));
+
+    let balance = loanAmount;
+    let scheduleHTML = '<table><thead><tr><th>Month</th><th>Payment</th><th>Interest</th><th>Principal</th><th>Remaining Balance</th></tr></thead><tbody>';
+
+    for (let month = 1; month <= loanTermYears * 12; month++) {
+      const interestPayment = balance * monthlyInterestRate;
+      const principalPayment = month <= interestOnlyPeriodYears * 12 ? 0 : monthlyPayment - interestPayment;
+      const totalPayment = interestPayment + principalPayment;
+      balance -= principalPayment;
+      if (balance < 0) balance = 0;
+
+      scheduleHTML += `<tr>
+        <td>${month}</td>
+        <td>${formatCurrency(totalPayment)}</td>
+        <td>${formatCurrency(interestPayment)}</td>
+        <td>${formatCurrency(principalPayment)}</td>
+        <td>${formatCurrency(balance)}</td>
+      </tr>`;
+    }
+
+    scheduleHTML += '</tbody></table>';
+    document.getElementById('amortizationSchedule').innerHTML = scheduleHTML;
+  }
+
+  function calculate() {
+    const projectCost = parseFloat(document.getElementById('projectCost').value);
+    const loanPercentage = parseFloat(document.getElementById('loanPercentage').value);
+    const interestRate = parseFloat(document.getElementById('interestRate').value) / 100;
+    const loanTerm = parseInt(document.getElementById('loanTerm').value);
+    const interestOnlyPeriod = parseInt(document.getElementById('interestOnlyPeriod').value);
+    const dscr = parseFloat(document.getElementById('dscr').value);
+
+    const loanAmount = projectCost * (loanPercentage / 100);
+    const annualInterestOnlyPayment = loanAmount * interestRate;
+    const amortizingTerm = loanTerm - interestOnlyPeriod;
+    const amortizingDebtService = loanAmount * (interestRate / (1 - Math.pow(1 + interestRate, -amortizingTerm)));
+
+    document.getElementById('loanAmount').textContent = formatCurrency(loanAmount);
+    document.getElementById('annualDebtService').textContent = `${formatCurrency(annualInterestOnlyPayment)} (IO), then ${formatCurrency(amortizingDebtService)} (Amortized)`;
+
+    const tableBody = document.getElementById('noiTableBody');
+    tableBody.innerHTML = '';
+
+    proformaData.forEach((entry, index) => {
+      const isInterestOnly = index < interestOnlyPeriod;
+      const annualDebtService = isInterestOnly ? annualInterestOnlyPayment : amortizingDebtService;
+      const requiredNOI = annualDebtService * dscr;
+      const meetsDSCR = entry.noi >= requiredNOI;
+      const status = meetsDSCR ? '✅ Meets DSCR' : '⚠️ Does NOT meet DSCR';
+      const shortfall = meetsDSCR ? '' : formatCurrency(requiredNOI - entry.noi);
+
+      const row = `<tr>
+        <td>${entry.year}</td>
+        <td>${formatCurrency(entry.noi)}</td>
+        <td>${formatCurrency(requiredNOI)}</td>
+        <td>${status}</td>
+        <td>${shortfall}</td>
+      </tr>`;
+      tableBody.insertAdjacentHTML('beforeend', row);
+    });
+
+    // Generate amortization schedule (pass the calculated loan variables)
+    generateAmortizationSchedule(loanAmount, interestRate, loanTerm, interestOnlyPeriod);
+  }
+
+  // Initial calculation on page load
+  calculate();
 </script>
 </body>
 </html>
