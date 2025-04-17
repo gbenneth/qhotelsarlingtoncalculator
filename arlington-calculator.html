@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Debt Service Calculator</title>
+<style>
+body { font-family: Arial, sans-serif; padding: 2em; background: #f9f9f9; }
+.calculator { background: white; padding: 2em; border-radius: 10px; max-width: 800px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+label { display: block; margin-top: 1em; font-weight: bold; }
+input { width: 100%; padding: 0.5em; margin-top: 0.5em; }
+.results { margin-top: 2em; padding: 1em; background: #eef; border-radius: 5px; }
+table { width: 100%; border-collapse: collapse; margin-top: 1em; }
+th, td { border: 1px solid #ccc; padding: 0.5em; text-align: center; }
+th { background-color: #ddd; }
+</style>
+</head>
+<body>
+<div class="calculator">
+<h2>Debt Service Calculator</h2>
+<label>Project Cost ($):
+<input type="number" id="projectCost" value="1000000" />
+</label>
+<label>Loan Percentage (% of Project Cost):
+<input type="number" id="loanPercentage" value="70" />
+</label>
+<label>Interest Rate (% annual):
+<input type="number" step="0.01" id="interestRate" value="5" />
+</label>
+<label>Term of Loan (years):
+<input type="number" id="loanTerm" value="20" />
+</label>
+<label>Interest-Only Period (years):
+<input type="number" id="interestOnlyPeriod" value="0" />
+</label>
+<label>Required DSCR:
+<input type="number" step="0.01" id="dscr" value="1.25" />
+</label>
+<div class="results">
+<p><strong>Loan Amount:</strong> $<span id="loanAmount"></span></p>
+<p><strong>Annual Debt Service:</strong> $<span id="annualDebtService"></span></p>
+<h3>5-Year NOI Comparison</h3>
+<table>
+<thead>
+<tr>
+<th>Year</th>
+<th>Projected NOI</th>
+<th>Required NOI</th>
+<th>Coverage Status</th>
+<th>Shortfall</th>
+</tr>
+</thead>
+<tbody id="noiTableBody"></tbody>
+</table>
+</div>
+</div>
+<script>
+const proformaData = [
+{ year: 2026, noi: 3623189.716 },
+{ year: 2027, noi: 4358083.146 },
+{ year: 2028, noi: 4906634.42 },
+{ year: 2029, noi: 5127161.47 },
+{ year: 2030, noi: 5349748.627 }
+];
+const inputs = document.querySelectorAll('input');
+inputs.forEach(input => input.addEventListener('input', calculate));
+function formatCurrency(value) {
+return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+}
+function calculate() {
+const projectCost = parseFloat(document.getElementById('projectCost').value);
+const loanPercentage = parseFloat(document.getElementById('loanPercentage').value);
+const interestRate = parseFloat(document.getElementById('interestRate').value) / 100;
+const loanTerm = parseInt(document.getElementById('loanTerm').value);
+const interestOnlyPeriod = parseInt(document.getElementById('interestOnlyPeriod').value);
+const dscr = parseFloat(document.getElementById('dscr').value);
+const loanAmount = projectCost * (loanPercentage / 100);
+const annualInterestOnlyPayment = loanAmount * interestRate;
+const amortizingTerm = loanTerm - interestOnlyPeriod;
+const amortizingDebtService = loanAmount * (interestRate / (1 - Math.pow(1 + interestRate, -amortizingTerm)));
+document.getElementById('loanAmount').textContent = formatCurrency(loanAmount);
+document.getElementById('annualDebtService').textContent = `${formatCurrency(annualInterestOnlyPayment)} (IO), then ${formatCurrency(amortizingDebtService)} (Amortized)`;
+const tableBody = document.getElementById('noiTableBody');
+tableBody.innerHTML = '';
+proformaData.forEach((entry, index) => {
+const yearIndex = index;
+const isInterestOnly = yearIndex < interestOnlyPeriod;
+const annualDebtService = isInterestOnly ? annualInterestOnlyPayment : amortizingDebtService;
+const requiredNOI = annualDebtService * dscr;
+const meetsDSCR = entry.noi >= requiredNOI;
+const status = meetsDSCR ? '✅ Meets DSCR' : '⚠️ Does NOT meet DSCR';
+const shortfall = meetsDSCR ? '' : formatCurrency(requiredNOI - entry.noi);
+const row = `<tr>
+<td>${entry.year}</td>
+<td>${formatCurrency(entry.noi)}</td>
+<td>${formatCurrency(requiredNOI)}</td>
+<td>${status}</td>
+<td>${shortfall}</td>
+</tr>`;
+tableBody.insertAdjacentHTML('beforeend', row);
+});
+}
+calculate();
+</script>
+</body>
+</html>
