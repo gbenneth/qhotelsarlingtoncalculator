@@ -114,6 +114,7 @@
 <body>
   <div class="sidebar">
     <div class="logo"><img src="Q-hotels.png"></div>
+    <a href="ARL Starnan Hotel - April 2025.pdf">Project History & Current Status</a>
     <a href="ARL Starnan Hotel - April 2025.pdf">Project Overview</a>
     <a href="10 Year Pro Forma.pdf">10 Year Pro Forma</a>
     <a href="Cash Flow Analysis.pdf">Cash Flow Analysis</a>
@@ -161,7 +162,7 @@
           <tbody id="noiTableBody"></tbody>
         </table>
       </div>
-      <div class="calculator">
+      <div class="calculator" style="display:none">
     <h2>Amortization Schedule</h2>
     <div id="amortizationSchedule"></div>
   </div>
@@ -169,11 +170,13 @@
   </div>
   <script>
   const proformaData = [
-    { year: 2026, noi: 3623189.716 },
-    { year: 2027, noi: 4358083.146 },
-    { year: 2028, noi: 4906634.42 },
-    { year: 2029, noi: 5127161.47 },
-    { year: 2030, noi: 5349748.627 }
+    { year: 2025, noi: 0 },
+    { year: 2026, noi: 0 },
+    { year: 2027, noi: 3623189.716 },
+    { year: 2028, noi: 4358083.146 },
+    { year: 2029, noi: 4906634.42},
+    { year: 2030, noi: 5127161.47 },
+    { year: 2031, noi: 5349748.627 }
   ];
 
   const inputs = document.querySelectorAll('input');
@@ -231,22 +234,32 @@
     tableBody.innerHTML = '';
 
     proformaData.forEach((entry, index) => {
-      const isInterestOnly = index < interestOnlyPeriod;
-      const annualDebtService = isInterestOnly ? annualInterestOnlyPayment : amortizingDebtService;
-      const requiredNOI = annualDebtService * dscr;
-      const meetsDSCR = entry.noi >= requiredNOI;
-      const status = meetsDSCR ? '✅ Meets DSCR' : '⚠️ Does NOT meet DSCR';
-      const shortfall = meetsDSCR ? '' : formatCurrency(requiredNOI - entry.noi);
+  let requiredNOI, status, shortfall;
 
-      const row = `<tr>
-        <td>${entry.year}</td>
-        <td>${formatCurrency(entry.noi)}</td>
-        <td>${formatCurrency(requiredNOI)}</td>
-        <td>${status}</td>
-        <td>${shortfall}</td>
-      </tr>`;
-      tableBody.insertAdjacentHTML('beforeend', row);
-    });
+  if (entry.noi > 0) {
+    const isInterestOnly = index < interestOnlyPeriod;
+    const annualDebtService = isInterestOnly ? annualInterestOnlyPayment : amortizingDebtService;
+    requiredNOI = annualDebtService * dscr;
+    const meetsDSCR = entry.noi >= requiredNOI;
+    status = meetsDSCR ? '✅ Meets DSCR' : '⚠️ Does NOT meet DSCR';
+    shortfall = meetsDSCR ? '' : formatCurrency(requiredNOI - entry.noi);
+  } else {
+    requiredNOI = 0;
+    status = 'Construction - Interest Only';
+    shortfall = '';
+  }
+
+  const row = `<tr>
+    <td>${entry.year}</td>
+    <td>${formatCurrency(entry.noi)}</td>
+    <td>${formatCurrency(requiredNOI)}</td>
+    <td>${status}</td>
+    <td>${shortfall}</td>
+  </tr>`;
+
+  tableBody.insertAdjacentHTML('beforeend', row);
+});
+
 
     // Generate amortization schedule (pass the calculated loan variables)
     generateAmortizationSchedule(loanAmount, interestRate, loanTerm, interestOnlyPeriod);
